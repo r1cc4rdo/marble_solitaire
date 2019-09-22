@@ -71,20 +71,6 @@ def print_board(board, encoding_format='ascii'):
     print('\n'.join(' '.join(numbers_to_encoding[value] for value in row) for row in board))
 
 
-def bit_to_board(board_name, state):
-    return np.sum(powers_of_2 * initial_board[initial_board >= 0])
-
-
-def decode_and_print(board_name, state):
-    board = np.array(board_io.load_board(board_name))
-    powers_of_2 = 2 ** np.arange(np.sum(board >= 0))
-    board[board >= 0] = (state & powers_of_2) > 0
-    board_io.print_board(board)
-
-
-
-
-
 if __name__ == '__main__':
 
     import doctest

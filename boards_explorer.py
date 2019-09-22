@@ -12,10 +12,9 @@ import os
 import time
 import pickle
 
-import numpy as np
 from docopt import docopt
 
-from board_io import load_board
+from search import initialize_for_board, children, remove_duplicates
 
 
 def unique_reachable_states(board_name):
@@ -24,18 +23,9 @@ def unique_reachable_states(board_name):
         with open(f'{board_name}-state-{index:03}.pkl', 'wb') as file_out:
             pickle.dump(state, file_out)
 
-    initial_board = np.array(load_board(board_name))
-    valid_moves, shuffles = generate_data_structures(initial_board)
-    shuffle_bitmasks = np.power(2, shuffles)
-    valid_moves_bitmasks = np.power(2, valid_moves)
-    move_masks = np.sum(valid_moves_bitmasks, axis=1)  # has 1s on the corresponding move representation bits
-    valid_test = np.sum(valid_moves_bitmasks[:, 0:2], axis=1)  # (state & move_masks) ^ valid_test is 0 iff valid (1, 1, 0)
-    powers_of_2 = 2 ** np.arange(len(shuffles[0]))
-
-    initial_state = np.sum(powers_of_2 * initial_board[initial_board >= 0])
+    initial_state = initialize_for_board(board_name)
     states = [{initial_state}]
     save_state(0, states[0])
-
     while True:
 
         t_start = time.process_time()
@@ -43,34 +33,19 @@ def unique_reachable_states(board_name):
         if os.path.exists(filename):
             with open(filename, 'rb') as file_in:
                 states.append(pickle.load(file_in))
-                print(f'Moves {len(states) - 1:4}, loaded states      {len(states[-1]):10} unique'
-                      f' in {time.process_time() - t_start:6.2f} seconds')
+                print(f'Moves {len(states) - 1:4}, loaded {len(states[-1]):10} unique states')
                 continue
 
-        next_board_ids = set()
-        for state in states[-1]:
-            valid = ((state & move_masks) ^ valid_test) == 0
-            new_states = state ^ move_masks[valid]
-            next_board_ids.update(new_states)
-
+        next_board_ids = children(states[-1])
         if not next_board_ids:  # we are done
             break
 
         before_dedupe = len(next_board_ids)
         t_search = time.process_time()
 
-        unique_states = set()
-        while next_board_ids:
-
-            state = next_board_ids.pop()
-            state_bits = (state & powers_of_2) != 0
-            dupes = {np.sum(shuffle_bitmask[state_bits]) for shuffle_bitmask in shuffle_bitmasks[1:]}
-            unique_states.add(state)
-            next_board_ids -= dupes
-
-        states.append(unique_states)
+        states.append(remove_duplicates(next_board_ids))
         t_dedupe = time.process_time()
-        save_state(len(states) - 1, unique_states)
+        save_state(len(states) - 1, states[-1])
 
         t_save = time.process_time()
         print(f'Moves {len(states) - 1:4}, states {before_dedupe:10} ({len(states[-1]):10} unique)  '

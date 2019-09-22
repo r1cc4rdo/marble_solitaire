@@ -2,15 +2,12 @@ import numpy as np
 
 from board_io import load_board
 
-board_template = None  #
-valid_moves = None  #
-shuffles = None  #
-shuffle_bitmasks = None  #
-valid_moves_bitmasks = None  #
-move_masks = None  #
-valid_test_fwd = None  #
-valid_test_bwd = None  #
-powers_of_2 = None  #
+powers_of_2 = None  # used as bit masks for each bit in the board representation
+board_template = None  # see board_io. -1 on unused grid elements, 0 empty, 1 filled with marble/peg
+move_bit_masks = None  # has 1s on the corresponding move representation bits
+valid_test_fwd = None  # (bit_state & move_masks) ^ valid_test is 0 iff valid i.e. src, mid, dest == 1, 1, 0
+valid_test_bwd = None  # (bit_state & move_masks) ^ valid_test is 0 iff valid i.e. src, mid, dest == 0, 0, 1
+shuffle_bit_masks = None  #
 
 
 def generate_moves_and_shuffles(template):
@@ -40,18 +37,72 @@ def generate_moves_and_shuffles(template):
     return valid_moves, tuple(tuple(s[s >= 0]) for s in shuffles)
 
 
-def initialize(board_name):
+def initialize_for_board(board_name):
     """
 
     :param board_name:
     :return:
     """
+    global powers_of_2, board_template, move_bit_masks, valid_test_fwd, valid_test_bwd, shuffle_bit_masks
 
-    initial_board = np.array(load_board(board_name))
-    valid_moves, shuffles = generate_data_structures(initial_board)
-    shuffle_bitmasks = np.power(2, shuffles)
+    board_template = np.array(load_board(board_name))
+    valid_moves, shuffles = generate_moves_and_shuffles(board_template)
+
     valid_moves_bitmasks = np.power(2, valid_moves)
-    move_masks = np.sum(valid_moves_bitmasks, axis=1)  # has 1s on the corresponding move representation bits
-    valid_test = np.sum(valid_moves_bitmasks[:, 0:2],
-                        axis=1)  # (state & move_masks) ^ valid_test is 0 iff valid (1, 1, 0)
+    move_bit_masks = np.sum(valid_moves_bitmasks, axis=1)
+    valid_test_fwd = np.sum(valid_moves_bitmasks[:, 0:2], axis=1)
+    valid_test_bwd = valid_moves_bitmasks[:, 2]
+
+    shuffle_bit_masks = np.power(2, shuffles)
     powers_of_2 = 2 ** np.arange(len(shuffles[0]))
+
+    return board_to_int(board_template)
+
+
+def board_to_int(board):
+    return np.sum(powers_of_2[board[board >= 0] > 0])
+
+
+def int_to_board(bit_state):
+    board = np.copy(board_template)
+    board[board >= 0] = (bit_state & powers_of_2) > 0
+    return board
+
+
+def parents(bit_states):
+    return next_states(bit_states, valid_test_bwd)
+
+
+def children(bit_states):
+    return next_states(bit_states, valid_test_fwd)
+
+
+def next_states(bit_states, valid_test):
+    """
+    Return all states reachable from this
+    """
+    local_move_mask = move_bit_masks
+
+    next_board_ids = set()
+    for bit_state in bit_states:
+        valid = ((bit_state & local_move_mask) ^ valid_test) == 0
+        new_states = bit_state ^ local_move_mask[valid]
+        next_board_ids.update(new_states)
+    return next_board_ids
+
+
+def remove_duplicates(bit_states):
+    """
+    Equivalent moves under flip/rotation
+    """
+    local_pow_2 = powers_of_2
+    local_shuffle_masks = shuffle_bit_masks
+
+    unique_states = set()
+    while bit_states:
+        state = bit_states.pop()
+        state_bits = (state & local_pow_2) != 0
+        dupes = {np.sum(shuffle_bit_mask[state_bits]) for shuffle_bit_mask in local_shuffle_masks[1:]}
+        unique_states.add(state)
+        bit_states -= dupes
+    return unique_states

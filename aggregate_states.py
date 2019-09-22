@@ -10,11 +10,11 @@ Options:
 """
 import time
 import pickle
-import numpy as np
 from pathlib import Path
 from docopt import docopt
 
-import board_io
+from board_io import print_board
+from search import initialize_for_board, int_to_board
 
 
 def aggregate_states(board_name):
@@ -38,10 +38,11 @@ def aggregate_states(board_name):
     for filename in files:
         filename.unlink()
 
+    initialize_for_board(board_name)
     print(f'{len(states[-1])} final unique states for {board_name} board')
     for index, state in enumerate(states[-1]):
         print(f'{index}: {state}')
-        decode_and_print(board_name, state)
+        print_board(int_to_board(state))
 
 
 if __name__ == '__main__':
