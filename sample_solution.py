@@ -15,7 +15,7 @@ from pathlib import Path
 from docopt import docopt
 
 from board_io import load_board
-from boards_explorer import generate_data_structures
+from search import generate_moves_and_shuffles
 
 
 def sample_solution(board_name, final_state):
@@ -27,7 +27,7 @@ def sample_solution(board_name, final_state):
     print(f'Loaded {filename} in {time.process_time() - t_start:.3f} seconds')
 
     initial_board = np.array(load_board(board_name))
-    valid_moves, shuffles = generate_data_structures(initial_board)
+    valid_moves, shuffles = generate_moves_and_shuffles(initial_board)
     shuffle_bitmasks = np.power(2, shuffles)
     valid_moves_bitmasks = np.power(2, valid_moves)
     move_masks = np.sum(valid_moves_bitmasks, axis=1)  # has 1s on the corresponding move representation bits
@@ -51,8 +51,6 @@ def sample_solution(board_name, final_state):
 
         states[move].intersection_update(backward_states)
         print(f'{move:4}: {len(states[move]):10d}    {time.process_time() - t_start:8.3f}s')
-
-
 
 
 if __name__ == '__main__':

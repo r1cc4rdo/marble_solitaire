@@ -27,7 +27,7 @@ boards = {  # ascii encoded
                 . . * * * . .
                 """,
 
-    'japanese': """
+    'wiegleb': """
                 . . . * * * . . .
                 . . . * * * . . .
                 . . . * * * . . .

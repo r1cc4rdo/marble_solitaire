@@ -91,18 +91,20 @@ def next_states(bit_states, valid_test):
     return next_board_ids
 
 
-def remove_duplicates(bit_states):
+def equivalent_states(bit_state, include_self=False):
     """
     Equivalent moves under flip/rotation
     """
-    local_pow_2 = powers_of_2
-    local_shuffle_masks = shuffle_bit_masks
+    state_bits = (bit_state & powers_of_2) != 0
+    shuffle_masks = shuffle_bit_masks[(0 if include_self else 1):]
+    return {np.sum(shuffle_mask[state_bits]) for shuffle_mask in shuffle_masks}
 
-    unique_states = set()
+
+def unique_states(bit_states):
+
+    unique_bit_states = set()
     while bit_states:
         state = bit_states.pop()
-        state_bits = (state & local_pow_2) != 0
-        dupes = {np.sum(shuffle_bit_mask[state_bits]) for shuffle_bit_mask in local_shuffle_masks[1:]}
-        unique_states.add(state)
-        bit_states -= dupes
-    return unique_states
+        unique_bit_states.add(state)
+        bit_states -= equivalent_states(state)
+    return unique_bit_states

@@ -1,8 +1,8 @@
 """Marble solitaire board explorer.
 
 Usage:
-    board_explorer BOARD_NAME
-    board_explorer --help
+    search_forward BOARD_NAME
+    search_forward --help
 
 Options:
   -h --help     Show this screen.
@@ -14,7 +14,7 @@ import pickle
 
 from docopt import docopt
 
-from search import initialize_for_board, children, remove_duplicates
+from search import initialize_for_board, children, unique_states
 
 
 def unique_reachable_states(board_name):
@@ -43,7 +43,7 @@ def unique_reachable_states(board_name):
         before_dedupe = len(next_board_ids)
         t_search = time.process_time()
 
-        states.append(remove_duplicates(next_board_ids))
+        states.append(unique_states(next_board_ids))
         t_dedupe = time.process_time()
         save_state(len(states) - 1, states[-1])
 
