@@ -1,12 +1,7 @@
-"""Marble solitaire board explorer.
+"""Marble solitaire forward search.
 
 Usage:
-    forward_search BOARD_NAME
-    forward_search --help
-
-Options:
-  -h --help     Show this screen.
-  --version     Show version.
+    search_forward BOARD_NAME
 """
 import time
 import pickle
@@ -18,65 +13,57 @@ from search import initialize_for_board, children, unique_boards, int_to_board
 from board_io import print_board
 
 
-def checkpoint():
-    curr = 0
-    while True:
-        prev, curr = curr, time.process_time()
-        yield curr - prev
-
-
 def forward_search(board_name):
 
-    def save_state(index, state):
-        with Path(f'{board_name}-state-{index:03}.pkl').open('wb') as file_out:
-            pickle.dump(state, file_out)
+    def save_bit_boards(index, bit_boards):
+        with Path(f'{board_name}-board-{index:03}.pkl').open('wb') as file_out:
+            pickle.dump(bit_boards, file_out)
 
-    initial_state = initialize_for_board(board_name)
-    states = [{initial_state}]
-    save_state(0, states[0])
-    partial_state_files = []
+    starting_position = initialize_for_board(board_name)
+    boards_at_move = [{starting_position}]
+    save_bit_boards(0, boards_at_move[0])
+    partial_board_files = []
     while True:
 
-        checkpoint()  # reset timer
-
-        filename = Path(f'{board_name}-state-{len(states):03}.pkl')
-        partial_state_files.append(filename)
+        filename = Path(f'{board_name}-board-{len(boards_at_move):03}.pkl')
+        partial_board_files.append(filename)
         if filename.exists():
             with filename.open('rb') as file_in:
-                states.append(pickle.load(file_in))
-                print(f'Moves {len(states) - 1:4}, loaded {len(states[-1]):10} unique states')
+                boards_at_move.append(pickle.load(file_in))
+                print(f'Moves {len(boards_at_move) - 1:4}, loaded {len(boards_at_move[-1]):10} unique boards')
                 continue
 
-        next_board_ids = children(states[-1])
+        t_start = time.process_time()
+        next_board_ids = children(boards_at_move[-1])
+        board_count = len(next_board_ids)
+        t_search = time.process_time() - t_start
+
         if not next_board_ids:  # we are done
             break
 
-        before_dedupe = len(next_board_ids)
-        t_search = checkpoint()
+        boards_at_move.append(unique_boards(next_board_ids))
+        t_dedupe = time.process_time() - t_search
 
-        states.append(unique_boards(next_board_ids))
-        t_dedupe = checkpoint()
-        save_state(len(states) - 1, states[-1])
+        save_bit_boards(len(boards_at_move) - 1, boards_at_move[-1])
+        t_save = time.process_time() - t_dedupe
 
-        t_save = checkpoint()
-        print(f'Moves {len(states) - 1:4}, states {before_dedupe:10} ({len(states[-1]):10} unique)  '
+        print(f'Moves {len(boards_at_move) - 1:4}, boards {board_count:10} ({len(boards_at_move[-1]):10} unique)  '
               f'search/dedupe/save: {t_search:6.2f} / {t_dedupe:6.2f} / {t_save:6.2f} seconds')
 
-    print('Saving states...')
+    print('Saving boards...')
     t_start = time.process_time()
-    filename = f'{board_name}-states.pkl'
+    filename = f'{board_name}-boards.pkl'
     with Path(filename).open('wb') as file_out:
-        pickle.dump(states, file_out)
+        pickle.dump(boards_at_move, file_out)
     print(f'Saved {filename} in {time.process_time() - t_start:.3f} seconds')
 
-    for filename in partial_state_files:
+    for filename in partial_board_files:
         filename.unlink()
 
-    initialize_for_board(board_name)
-    print(f'{len(states[-1])} final unique states for {board_name} board')
-    for index, state in enumerate(states[-1]):
-        print(f'{index}: {state}')
-        print_board(int_to_board(state))
+    print(f'{len(boards_at_move[-1])} final unique boards for {board_name} board')
+    for index, board in enumerate(boards_at_move[-1]):
+        print(f'#{index} [{board}]')
+        print_board(int_to_board(board))
 
 
 if __name__ == '__main__':
