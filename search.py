@@ -5,9 +5,9 @@ from board_io import load_board
 powers_of_2 = None  # used as bit masks for each bit in the board representation
 board_template = None  # see board_io. -1 on unused grid elements, 0 empty, 1 filled with marble/peg
 move_bit_masks = None  # has 1s on the corresponding move representation bits
-valid_test_fwd = None  # (bit_state & move_masks) ^ valid_test is 0 iff valid i.e. src, mid, dest == 1, 1, 0
-valid_test_bwd = None  # (bit_state & move_masks) ^ valid_test is 0 iff valid i.e. src, mid, dest == 0, 0, 1
-shuffle_bit_masks = None  #
+valid_test_fwd = None  # (bit_board & move_masks) ^ valid_test is 0 iff valid i.e. src, mid, dest == 1, 1, 0
+valid_test_bwd = None  # (bit_board & move_masks) ^ valid_test is 0 iff valid i.e. src, mid, dest == 0, 0, 1
+shuffle_bit_masks = None  # powers_of_2 * (bit_board & shuffle_mask != 0) is an rotation/reflection equivalent board
 
 
 def generate_moves_and_shuffles(template):
@@ -39,9 +39,9 @@ def generate_moves_and_shuffles(template):
 
 def initialize_for_board(board_name):
     """
-
-    :param board_name:
-    :return:
+    Initializes global variables powers_of_2, board_template, move_bit_masks, valid_test_fwd, valid_test_bwd and
+    shuffle_bit_masks for a given board type. The variables are shared across all functions in this module.
+    See the comments at their declaration site for a detailed description of each.
     """
     global powers_of_2, board_template, move_bit_masks, valid_test_fwd, valid_test_bwd, shuffle_bit_masks
 
@@ -63,48 +63,47 @@ def board_to_int(board):
     return np.sum(powers_of_2[board[board >= 0] > 0])
 
 
-def int_to_board(bit_state):
+def int_to_board(bit_board):
     board = np.copy(board_template)
-    board[board >= 0] = (bit_state & powers_of_2) > 0
+    board[board >= 0] = (bit_board & powers_of_2) > 0
     return board
 
 
-def parents(bit_states):
-    return next_states(bit_states, valid_test_bwd)
+def parents(bit_boards):
+    return next_boards(bit_boards, valid_test_bwd)
 
 
-def children(bit_states):
-    return next_states(bit_states, valid_test_fwd)
+def children(bit_boards):
+    return next_boards(bit_boards, valid_test_fwd)
 
 
-def next_states(bit_states, valid_test):
+def next_boards(bit_boards, valid_test):
     """
-    Return all states reachable from this
+    Computes the board configurations that can be reached through valid forward and backward moves.
+    A forward move is the standard jump to remove mechanic; backward is the opposite process.
     """
     local_move_mask = move_bit_masks
-
-    next_board_ids = set()
-    for bit_state in bit_states:
-        valid = ((bit_state & local_move_mask) ^ valid_test) == 0
-        new_states = bit_state ^ local_move_mask[valid]
-        next_board_ids.update(new_states)
-    return next_board_ids
-
-
-def equivalent_states(bit_state, include_self=False):
-    """
-    Equivalent moves under flip/rotation
-    """
-    state_bits = (bit_state & powers_of_2) != 0
-    shuffle_masks = shuffle_bit_masks[(0 if include_self else 1):]
-    return {np.sum(shuffle_mask[state_bits]) for shuffle_mask in shuffle_masks}
+    all_next_boards = set()
+    for bit_board in bit_boards:
+        valid = ((bit_board & local_move_mask) ^ valid_test) == 0
+        next_bit_boards = bit_board ^ local_move_mask[valid]
+        all_next_boards.update(next_bit_boards)
+    return all_next_boards
 
 
-def unique_states(bit_states):
+def equivalent_boards(bit_boards):
 
-    unique_bit_states = set()
-    while bit_states:
-        state = bit_states.pop()
-        unique_bit_states.add(state)
-        bit_states -= equivalent_states(state)
-    return unique_bit_states
+    if not isinstance(bit_boards, set):
+        bit_boards = {bit_boards}
+    boards_bits = ((bit_board & powers_of_2) != 0 for bit_board in bit_boards)
+    return {np.sum(shuffle_mask[board_bits]) for board_bits in boards_bits for shuffle_mask in shuffle_bit_masks[1:]}
+
+
+def unique_boards(bit_boards):
+
+    unique_bit_boards = set()
+    while bit_boards:
+        bit_board = bit_boards.pop()
+        unique_bit_boards.add(bit_board)
+        bit_boards -= equivalent_boards(bit_board)
+    return unique_bit_boards

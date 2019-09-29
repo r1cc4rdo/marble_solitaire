@@ -13,7 +13,7 @@ import pickle
 from pathlib import Path
 from docopt import docopt
 
-from search import initialize_for_board, parents, equivalent_states
+from search import initialize_for_board, parents, equivalent_boards
 
 
 def load_states(board_name):
@@ -38,18 +38,17 @@ def save_states(board_name, final_state, states):
 def backward_search(board_name, final_state):
 
     states = load_states(board_name)
+    assert final_state in states[-1]
     states[-1] = {final_state}
     initialize_for_board(board_name)
     for move in range(len(states) - 2, 0, -1):
 
         t_start = time.process_time()
-        backward_states = set()
-        for state in states[move + 1]:
 
-            parent_states = parents(state)
-            backward_states.update(parent_states)
-            for parent_state in parent_states:
-                backward_states.update(equivalent_states(parent_state))
+        backward_states = set()
+        parent_states = parents(states[move + 1])
+        backward_states.update(parent_states)
+        backward_states.update(equivalent_boards(parent_states))
 
         states[move].intersection_update(backward_states)
         print(f'{move:4}: {len(states[move]):10d}    {time.process_time() - t_start:8.3f}s')
