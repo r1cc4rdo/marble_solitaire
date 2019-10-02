@@ -36,12 +36,12 @@ a number of moves, while detecting mirrored and rotated configurations.
 Moves    1, states          4 (         1 unique)  search/dedupe/save:   0.00 /   0.00 /   0.00
 Moves    2, states          3 (         2 unique)  search/dedupe/save:   0.00 /   0.00 /   0.00
 Moves    3, states         10 (         8 unique)  search/dedupe/save:   0.00 /   0.00 /   0.00
-[... snip ...]
+... snip ...
 Moves   16, states    8907763 (   3312423 unique)  search/dedupe/save:  56.10 / 280.90 /  26.43
 Moves   17, states   10743278 (   3626632 unique)  search/dedupe/save:  74.12 / 301.27 /  31.44
 Moves   18, states   10874426 (   3413313 unique)  search/dedupe/save:  77.54 / 309.46 /  27.81
 Moves   19, states    9503468 (   2765623 unique)  search/dedupe/save:  69.52 / 226.18 /  22.49
-[... snip ...]
+... snip ...
 Moves   29, states        162 (        50 unique)  search/dedupe/save:   0.01 /   0.00 /   0.00
 Moves   30, states         12 (         7 unique)  search/dedupe/save:   0.00 /   0.00 /   0.00
 Moves   31, states          2 (         2 unique)  search/dedupe/save:   0.00 /   0.00 /   0.00
@@ -72,21 +72,25 @@ Loaded british-boards.pkl in 28.922 seconds
   30:          1       0.000s
   29:          2       0.000s
   28:          8       0.001s
-[... snip ...]
+         ... snip ...
   18:     162319      73.614s
   17:     204992     100.521s
   16:     230230     135.629s
   15:     230230     136.018s
   14:     204992     115.776s
   13:     162319     106.600s
-[... snip ...]
+         ... snip ...
    3:          8       0.007s
    2:          2       0.001s
    1:          1       0.000s
 Saved british-65536.pkl in 11.137 seconds
 ``` 
-The result is
+The result of the process contains all the board configurations after a specified amount of moves
+that can lead to the targeted final state. In order to extract a single solution from it, we can
+select a single solution by choosing one randomly at every step, and finding those who follow from
+the next batch. This can be done with the [search_solution script](search_solution.py).
 
-search_solution
-
-british_logs.md
+The full logs for each of the supported boards are here:
+* [british](british_logs.md)
+* [european](european_logs.md)
+* [wiegleb](wiegleb_logs.md)
