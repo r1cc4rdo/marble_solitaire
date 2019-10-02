@@ -57,52 +57,10 @@ Moves   28, states       1204 (       348 unique)  search/dedupe/save:   0.03 / 
 Moves   29, states        162 (        50 unique)  search/dedupe/save:   0.01 /   0.00 /   0.00
 Moves   30, states         12 (         7 unique)  search/dedupe/save:   0.00 /   0.00 /   0.00
 Moves   31, states          2 (         2 unique)  search/dedupe/save:   0.00 /   0.00 /   0.00
-```
-```text
->>> python aggregate_states british
-british-state-000.pkl            1 states     0.476s
-british-state-001.pkl            1 states     0.000s
-british-state-002.pkl            2 states     0.000s
-british-state-003.pkl            8 states     0.000s
-british-state-004.pkl           39 states     0.000s
-british-state-005.pkl          171 states     0.000s
-british-state-006.pkl          719 states     0.001s
-british-state-007.pkl         2757 states     0.004s
-british-state-008.pkl         9751 states     0.009s
-british-state-009.pkl        31312 states     0.029s
-british-state-010.pkl        89927 states     0.088s
-british-state-011.pkl       229614 states     0.200s
-british-state-012.pkl       517854 states     0.647s
-british-state-013.pkl      1022224 states     1.052s
-british-state-014.pkl      1753737 states     1.774s
-british-state-015.pkl      2598215 states     2.822s
-british-state-016.pkl      3312423 states     3.488s
-british-state-017.pkl      3626632 states     3.902s
-british-state-018.pkl      3413313 states     3.817s
-british-state-019.pkl      2765623 states     2.970s
-british-state-020.pkl      1930324 states     2.151s
-british-state-021.pkl      1160977 states     1.253s
-british-state-022.pkl       600372 states     0.612s
-british-state-023.pkl       265865 states     0.278s
-british-state-024.pkl       100565 states     0.135s
-british-state-025.pkl        32250 states     0.033s
-british-state-026.pkl         8688 states     0.008s
-british-state-027.pkl         1917 states     0.001s
-british-state-028.pkl          348 states     0.000s
-british-state-029.pkl           50 states     0.000s
-british-state-030.pkl            7 states     0.000s
-british-state-031.pkl            2 states     0.000s
-Saved british-states.pkl.zip in 181.834 seconds
-2 final unique states for british board
-0: 2
-. . O * O . .
-. . O O O . .
-O O O O O O O
-O O O O O O O
-O O O O O O O
-. . O O O . .
-. . O O O . .
-1: 65536
+Saving boards...
+Saved british-boards.pkl in 226.316 seconds
+2 final unique boards for british board
+#0 [65536]
 . . O O O . .
 . . O O O . .
 O O O O O O O
@@ -110,39 +68,48 @@ O O O * O O O
 O O O O O O O
 . . O O O . .
 . . O O O . .
+#1 [2]
+. . O * O . .
+. . O O O . .
+O O O O O O O
+O O O O O O O
+O O O O O O O
+. . O O O . .
+. . O O O . .
 ```
+
 ```text
 >>> python backward_search british 65536
-Loaded british-states.pkl in 26.989 seconds
+Loaded british-boards.pkl in 28.922 seconds
   30:          1       0.000s
   29:          2       0.000s
   28:          8       0.001s
   27:         38       0.004s
-  26:        164       0.024s
-  25:        635       0.112s
-  24:       2089       0.497s
-  23:       6174       1.749s
-  22:      16020       5.426s
-  21:      35749      15.553s
-  20:      68326      36.431s
-  19:     112788      75.194s
-  18:     162319     105.505s
-  17:     204992     143.043s
-  16:     230230     228.966s
-  15:     230230     256.835s
-  14:     204992     192.749s
-  13:     162319     158.612s
-  12:     112788     119.993s
-  11:      68326      86.889s
-  10:      35749      50.334s
-   9:      16020      34.145s
-   8:       6174      14.395s
-   7:       2089       4.641s
-   6:        635       1.683s
-   5:        164       0.424s
-   4:         38       0.073s
-   3:          8       0.016s
-   2:          2       0.002s
+  26:        164       0.020s
+  25:        635       0.093s
+  24:       2089       0.637s
+  23:       6174       1.377s
+  22:      16020       4.301s
+  21:      35749      12.610s
+  20:      68326      25.109s
+  19:     112788      45.093s
+  18:     162319      73.614s
+  17:     204992     100.521s
+  16:     230230     135.629s
+  15:     230230     136.018s
+  14:     204992     115.776s
+  13:     162319     106.600s
+  12:     112788      75.463s
+  11:      68326      54.740s
+  10:      35749      30.485s
+   9:      16020      14.627s
+   8:       6174       5.111s
+   7:       2089       1.765s
+   6:        635       0.531s
+   5:        164       0.138s
+   4:         38       0.032s
+   3:          8       0.007s
+   2:          2       0.001s
    1:          1       0.000s
-Saved british-65536.pkl in 21.041 seconds
+Saved british-65536.pkl in 11.137 seconds
 ```

@@ -30,7 +30,7 @@ def generate_moves_and_shuffles(template):
 
     shuffles = []  # permutations to obtain equivalent boards
     flipped_index = np.fliplr(bit_index)  # mirrored
-    for _ in range(4):  # rotated 0, 90, 180, 270 degrees
+    for _ in range(4):  # rotated 90, 180, 270 degrees
         shuffles.extend((bit_index, flipped_index))
         bit_index, flipped_index = map(np.rot90, (bit_index, flipped_index))
 
@@ -91,12 +91,13 @@ def next_boards(bit_boards, valid_test):
     return all_next_boards
 
 
-def equivalent_boards(bit_boards):
+def equivalent_boards(bit_boards, include_self=True):
 
     if not isinstance(bit_boards, set):
         bit_boards = {bit_boards}
+    shuffle_masks = shuffle_bit_masks if include_self else shuffle_bit_masks[1:]
     boards_bits = ((bit_board & powers_of_2) != 0 for bit_board in bit_boards)
-    return {np.sum(shuffle_mask[board_bits]) for board_bits in boards_bits for shuffle_mask in shuffle_bit_masks[1:]}
+    return {np.sum(shuffle_mask[board_bits]) for board_bits in boards_bits for shuffle_mask in shuffle_masks}
 
 
 def unique_boards(bit_boards):
@@ -105,5 +106,5 @@ def unique_boards(bit_boards):
     while bit_boards:
         bit_board = bit_boards.pop()
         unique_bit_boards.add(bit_board)
-        bit_boards -= equivalent_boards(bit_board)
+        bit_boards -= equivalent_boards(bit_board, include_self=False)
     return unique_bit_boards

@@ -28,7 +28,6 @@ def backward_search(board_name, target_position):
 
         backward_boards = set()
         parent_boards = parents(bit_boards[move + 1])
-        backward_boards.update(parent_boards)
         backward_boards.update(equivalent_boards(parent_boards))
         bit_boards[move].intersection_update(backward_boards)
 

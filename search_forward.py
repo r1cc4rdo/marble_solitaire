@@ -16,17 +16,16 @@ from board_io import print_board
 def forward_search(board_name):
 
     def save_bit_boards(index, bit_boards):
-        with Path(f'{board_name}-board-{index:03}.pkl').open('wb') as file_out:
+        with Path(filename_format.format(board_name, index)).open('wb') as file_out:
             pickle.dump(bit_boards, file_out)
 
+    filename_format = '{}-board-{:03d}.pkl'
     starting_position = initialize_for_board(board_name)
     boards_at_move = [{starting_position}]
     save_bit_boards(0, boards_at_move[0])
-    partial_board_files = []
     while True:
 
-        filename = Path(f'{board_name}-board-{len(boards_at_move):03}.pkl')
-        partial_board_files.append(filename)
+        filename = Path(filename_format.format(board_name, len(boards_at_move)))
         if filename.exists():
             with filename.open('rb') as file_in:
                 boards_at_move.append(pickle.load(file_in))
@@ -36,17 +35,18 @@ def forward_search(board_name):
         t_start = time.process_time()
         next_board_ids = children(boards_at_move[-1])
         board_count = len(next_board_ids)
-        t_search = time.process_time() - t_start
+        t_search = time.process_time()
 
         if not next_board_ids:  # we are done
             break
 
         boards_at_move.append(unique_boards(next_board_ids))
-        t_dedupe = time.process_time() - t_search
+        t_dedupe = time.process_time()
 
         save_bit_boards(len(boards_at_move) - 1, boards_at_move[-1])
-        t_save = time.process_time() - t_dedupe
+        t_save = time.process_time()
 
+        t_search, t_dedupe, t_save = t_search - t_start, t_dedupe - t_search, t_save - t_dedupe
         print(f'Moves {len(boards_at_move) - 1:4}, boards {board_count:10} ({len(boards_at_move[-1]):10} unique)  '
               f'search/dedupe/save: {t_search:6.2f} / {t_dedupe:6.2f} / {t_save:6.2f} seconds')
 
@@ -57,8 +57,8 @@ def forward_search(board_name):
         pickle.dump(boards_at_move, file_out)
     print(f'Saved {filename} in {time.process_time() - t_start:.3f} seconds')
 
-    for filename in partial_board_files:
-        filename.unlink()
+    for index in range(len(boards_at_move)):
+        Path(filename_format.format(board_name, index)).unlink()
 
     print(f'{len(boards_at_move[-1])} final unique boards for {board_name} board')
     for index, board in enumerate(boards_at_move[-1]):
