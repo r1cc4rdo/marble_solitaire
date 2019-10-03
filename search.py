@@ -108,3 +108,12 @@ def unique_boards(bit_boards):
         unique_bit_boards.add(bit_board)
         bit_boards -= equivalent_boards(bit_board, include_self=False)
     return unique_bit_boards
+
+
+def canonical(bit_boards):
+    if not isinstance(bit_boards, set):
+        bit_boards = {bit_boards}
+
+    # compute min of equivalent boards
+
+    # return
