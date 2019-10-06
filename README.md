@@ -94,7 +94,3 @@ The full logs for each of the supported boards are here:
 * [british](british_logs.md)
 * [european](european_logs.md)
 * [wiegleb](wiegleb_logs.md)
-
-# TODO
-
-* instead of equivalent, extract representative (min of equals)
